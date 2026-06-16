@@ -9,4 +9,9 @@ https://drive.google.com/file/d/1ke4KqMO6syeP-usYnIKKM6U6QfQZxWnJ/view
 https://drive.google.com/file/d/1RR4DdF1tYSqNONG8m3lXAFc68sqMCjjE/view
 
 https://drive.google.com/file/d/1KTOcXSpfhrXvzeeB83kOIf7qT0GRcuES/view
-<img width="503" height="236" alt="image" src="https://github.com/user-attachments/assets/2914d668-3d8d-465f-8bc2-16fac925c2f9" />
+
+<img width="946" height="478" alt="image" src="https://github.com/user-attachments/assets/a1a2be96-a324-4041-9175-3925a212f5ba" />
+
+<img width="959" height="539" alt="image" src="https://github.com/user-attachments/assets/5d3c9230-fec0-41b9-acf2-294e6aa51cc2" />
+
+
