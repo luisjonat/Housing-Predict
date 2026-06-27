@@ -34,6 +34,9 @@ https://drive.google.com/file/d/1KTOcXSpfhrXvzeeB83kOIf7qT0GRcuES/view
 
 <img width="126" height="20" alt="image" src="https://github.com/user-attachments/assets/accdc127-b24e-4a0a-a355-b90389911717" />
 
+<img width="959" height="506" alt="image" src="https://github.com/user-attachments/assets/9da99cb4-c9fb-47d3-bf61-27b98f805d26" />
+
+
 
 
 
