@@ -24,21 +24,7 @@ https://drive.google.com/file/d/1RR4DdF1tYSqNONG8m3lXAFc68sqMCjjE/view
 
 https://drive.google.com/file/d/1KTOcXSpfhrXvzeeB83kOIf7qT0GRcuES/view
 
-<img width="946" height="478" alt="image" src="https://github.com/user-attachments/assets/a1a2be96-a324-4041-9175-3925a212f5ba" />
-
-<img width="959" height="539" alt="image" src="https://github.com/user-attachments/assets/5d3c9230-fec0-41b9-acf2-294e6aa51cc2" />
-
-<img width="956" height="504" alt="image" src="https://github.com/user-attachments/assets/a3f054d8-1290-46b4-af7b-c7d14f90b275" />
-
-<img width="126" height="20" alt="image" src="https://github.com/user-attachments/assets/5b3973c0-3c37-424d-a90c-11b03f7a956f" />
-
-<img width="126" height="20" alt="image" src="https://github.com/user-attachments/assets/accdc127-b24e-4a0a-a355-b90389911717" />
-
-<img width="959" height="506" alt="image" src="https://github.com/user-attachments/assets/9da99cb4-c9fb-47d3-bf61-27b98f805d26" />
-
-
-<img width="958" height="496" alt="image" src="https://github.com/user-attachments/assets/b480a778-6e56-40b6-a26b-6156ed067640" />
-
+<img width="778" height="473" alt="image" src="https://github.com/user-attachments/assets/e9a3b84a-e284-45c0-b8ff-1fe359a44014" />
 
 
 
