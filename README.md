@@ -52,6 +52,8 @@ exportar_excel(resultado, "Incurridos_por_Ramo.xlsx")
 conn.close()
 print("Conexión cerrada.")
 
+
+
 Estimado equipo de TI / [Nombre del responsable],
 
 Por medio del presente correo solicito autorización para instalar SQL Server Express (o Developer Edition) en mi equipo corporativo.
