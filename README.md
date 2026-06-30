@@ -1,35 +1,3 @@
----------------------------------------------------------------------------
-OverflowError                             Traceback (most recent call last)
-Cell In[15], line 5
-      1 Incurridos_Generales = pd.read_excel(Path_Incurridos + "SENT INCURRIDOS GENERALES_31032026.xlsx", sheet_name='GCExcel 1', engine='openpyxl')
-      2 Incurridos_Vida = pd.read_excel(Path_Incurridos + 'SENT INCURRIDOS VIDA 31032026.xlsx', sheet_name='GCExcel 1', engine='openpyxl')
-      3 
-      4 conn = sqlite3.connect("Base_Central")
-----> 5 Incurridos_Generales.to_sql("Incurridos_Generales", conn, if_exists='replace', index=False)
-      6 Incurridos_Vida.to_sql("Incurridos_Vida", conn, if_exists='replace', index=False)
-      7 conn.close
-
-File c:\Users\Luis.Pereguez\AppData\Local\Programs\Python\Python314\Lib\site-packages\pandas\core\generic.py:3052, in NDFrame.to_sql(self, name, con, schema, if_exists, index, index_label, chunksize, dtype, method)
-   3048         3
-   3049         """  # noqa: E501
-   3050         from pandas.io import sql
-   3051 
--> 3052         return sql.to_sql(
-   3053             self,
-   3054             name,
-   3055             con,
-
-File c:\Users\Luis.Pereguez\AppData\Local\Programs\Python\Python314\Lib\site-packages\pandas\io\sql.py:841, in to_sql(frame, name, con, schema, if_exists, index, index_label, chunksize, dtype, method, engine, **engine_kwargs)
-    836     raise NotImplementedError(
-    837         "'frame' argument should be either a Series or a DataFrame"
-    838     )
-...
--> 2571     conn.executemany(self.insert_statement(num_rows=1), data_list)
-   2572 except Error as exc:
-   2573     raise DatabaseError("Execution failed") from exc
-
-OverflowError: Python int too large to convert to SQLite INTEGER
-
 
 
 Estimado equipo de TI / [Nombre del responsable],
@@ -58,7 +26,9 @@ https://drive.google.com/file/d/1RR4DdF1tYSqNONG8m3lXAFc68sqMCjjE/view
 
 https://drive.google.com/file/d/1KTOcXSpfhrXvzeeB83kOIf7qT0GRcuES/view
 
-<img width="778" height="473" alt="image" src="https://github.com/user-attachments/assets/e9a3b84a-e284-45c0-b8ff-1fe359a44014" />
+<img width="955" height="488" alt="image" src="https://github.com/user-attachments/assets/3ed1e004-6692-4137-95fe-6c24e3f7d0c4" />
+
+
 
 
 
