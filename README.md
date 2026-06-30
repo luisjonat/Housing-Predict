@@ -1,3 +1,29 @@
+Cómo instalar una versión anterior de SQLTools
+
+Ve a Extensions (Ctrl+Shift+X)
+Busca SQLTools y haz clic en el engranaje ⚙️ que aparece al lado
+Selecciona "Install Another Version..."
+Te aparece una lista de todas las versiones disponibles
+Prueba con versiones anteriores a la actual — empieza por una que tenga unos meses de antigüedad y ve bajando si sigue pidiendo Node
+
+Lo mismo para SQLTools SQLite (el driver):
+
+También necesitas bajar su versión en paralelo, porque las versiones del driver y la extensión base deben ser compatibles entre sí
+
+El problema real de este enfoque
+Te lo digo con franqueza para que tomes la mejor decisión: bajar versiones de extensiones en VS Code es una solución frágil porque:
+
+VS Code tiende a actualizar las extensiones automáticamente, y un día te despiertas con la versión nueva otra vez y el mismo problema
+Puedes desactivar las actualizaciones automáticas, pero entonces te quedas sin correcciones de bugs o mejoras de seguridad
+La compatibilidad entre versiones del driver y la extensión base puede ser complicada de mantener manualmente
+
+Mi recomendación honesta
+Dado todo lo que hemos visto en esta conversación, el camino más estable para tu caso tiene dos opciones claras:
+Si quieres interfaz visual para las consultas (escribir SQL y ver tablas sin código Python) → instala DB Browser for SQLite (sqlitebrowser.org). Es una aplicación independiente, gratuita, sin Node, sin extensiones, y es exactamente lo que necesitas para explorar y consultar tu base visualmente. Abre tu Base_Central.db directamente.
+Si prefieres quedarte en VS Code → sigue con el notebook de Python que ya tienes armado. Para tu flujo de reaseguros (consultar + exportar a Excel) es suficiente y más robusto que depender de versiones específicas de extensiones.
+¿Quieres que te guíe con DB Browser for SQLite? Es la alternativa más limpia si quieres la experiencia visual de escribir SQL y ver resultados en tabla, sin depender de Node.
+
+
 import sqlite3
 import pandas as pd
 from pathlib import Path
