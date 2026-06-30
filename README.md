@@ -1,4 +1,56 @@
+import sqlite3
+import pandas as pd
+from pathlib import Path
 
+# Ajusta esta ruta a donde tengas tu archivo .db
+RUTA_BASE = "Base_Central.db"
+
+conn = sqlite3.connect(RUTA_BASE)
+print(f"Conectado a: {RUTA_BASE}")
+
+def consultar(query: str, connection=conn) -> pd.DataFrame:
+    """Ejecuta una consulta SQL y devuelve el resultado como DataFrame."""
+    return pd.read_sql(query, connection)
+
+
+def listar_tablas(connection=conn) -> pd.DataFrame:
+    """Lista todas las tablas existentes en la base."""
+    return consultar("SELECT name FROM sqlite_master WHERE type='table';", connection)
+
+
+def info_tabla(nombre_tabla: str, connection=conn) -> pd.DataFrame:
+    """Muestra las columnas y tipos de una tabla específica."""
+    return consultar(f"PRAGMA table_info({nombre_tabla});", connection)
+
+
+def exportar_excel(df: pd.DataFrame, nombre_archivo: str, carpeta: str = "exportes") -> None:
+    """Exporta un DataFrame a Excel dentro de la carpeta indicada (la crea si no existe)."""
+    Path(carpeta).mkdir(exist_ok=True)
+    ruta_completa = Path(carpeta) / nombre_archivo
+    df.to_excel(ruta_completa, index=False)
+    print(f"Exportado: {ruta_completa.resolve()}")
+
+# Vista rápida de una tabla
+consultar("SELECT * FROM Incurridos_Generales LIMIT 10;")
+
+# Ejemplo: filtrar por fecha y ramo, sumando montos
+query_ejemplo = """
+SELECT
+    Ramo,
+    SUM(Monto) AS Total_Incurrido
+FROM Incurridos_Generales
+WHERE Fecha >= '2026-01-01'
+GROUP BY Ramo
+ORDER BY Total_Incurrido DESC;
+"""
+
+resultado = consultar(query_ejemplo)
+resultado
+
+exportar_excel(resultado, "Incurridos_por_Ramo.xlsx")
+
+conn.close()
+print("Conexión cerrada.")
 
 Estimado equipo de TI / [Nombre del responsable],
 
