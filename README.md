@@ -1,3 +1,109 @@
+with open(ruta + "Cta_Fac_Broker_2Q2026 1", encoding='utf-8', errors='replace') as f:
+    lineas = [l.rstrip('\r\n') for l in f.readlines()]
+
+def detectar_colspecs(lineas):
+    cal_lineas = [l for l in lineas if l.count('%')>=5]
+    assert cal_lineas, "No se encontraron lineas de calibración ('%')"
+    pos = [j for j, c in enumerate(cal_lineas[0]) if c=='%']
+    diffs = [pos[k+1]-pos[k] for k in range(len(pos)-1)]
+    ancho = diffs[0]
+    assert all(d==ancho for d in diffs) # para columnas que no tienen ancho constante
+    fin_columnas = [p+1 for p in pos]
+    fin_label = [fin_columnas[0]-ancho]
+    colspecs = [(0, fin_label)]
+    for f in fin_columnas:
+        colspecs.append((f-ancho, f))
+        
+    colspecs[-1] = (colspecs[-1][0], None)
+    return colspecs
+
+
+colspecs = detectar_colspecs(lineas)
+n_col_ramo = len(colspecs) -2
+
+print("Colspecs detectados:", colspecs)
+
+def cortar(linea, ini, fin):
+    if ini >= len(linea):
+        return ""
+    if fin is None:
+        return linea[ini:].strip()
+    
+    return linea[ini:fin].strip()
+
+#separar en bloques (uno por cada linea corredor)
+
+idx_corredor = [i for i, l in enumerate(lineas) if l.strip().startswith("Corredor:")]
+
+patron_corredor = re.compile(
+    r'Corredor:\s*(?P<cod>\S+)\s(?P<nombre>.*?)\s+Periodo\.\.:\s*(?P<periodo>\S+)\s+Moneda\.\.:\s*(?P<moneda>.*)'
+)
+
+def es_separador(linea):
+    s = linea.strip()
+    return bool(s) and set(s) == {'-'}
+
+registros = []
+
+for n, idx in enumerate(idx_corredor):
+    fin_bloque = idx_corredor[n+1] if n+1 < len(idx_corredor) else len(lineas)
+    bloque = lineas[idx:fin_bloque]
+    
+    m = patron_corredor.search(bloque[0])
+    meta = m.groupdict() if m else {"cod": None, "nombre": None, "periodo": None, "moneda": None}
+    
+    idx_ramos = next((i for i, l in enumerate(bloque) if "R A M O S" in l), None)
+    
+    if idx_ramos is None:
+        continue
+    
+    linea_ramos = bloque[idx_ramos]
+    nombres_ramo = [cortar(linea_ramos, ini, fin) for ini, fin in colspecs[1:-1]]
+    
+    etiqueta_total = cortar(linea_ramos, *colspecs[-1])
+    
+    idx_participacion = next((i for i, l in enumerate(bloque) if l.count('%') >= 5), None)
+    
+    if idx_participacion is None:
+        continue
+    
+    ancho = colspecs[1][1] - colspecs[1][0]
+    centros = [ini + ancho/2 for ini, fin in colspecs[1:]]
+    offset_datos = colspecs[0][1]
+    
+    
+    for linea in bloque[idx_participacion+1:]:
+        if not linea.strip() or es_separador(linea):
+            continue
+        
+        concepto = cortar(linea, *colspecs[0])
+        if not concepto:
+            continue
+        
+        resto = linea[offset_datos:]
+        for tok in re.finditer(r'\S+', resto):
+            centro_tok = offset_datos + (tok.start() + tok.end())/2
+            j = min(range(len(centros)), key=lambda k: abs(centros[k] - centro_tok))
+            
+            if j == len(centros) -1:
+                ramo_col = ramo_nombre = etiqueta_total
+            else:
+                ramo_col, ramo_nombre = j+1, nombres_ramo[j]
+                
+            registros.append({
+                "Corredor_Codigo": meta["cod"],
+                "Corredor_nombre": meta["nombre"],
+                "Periodo": meta["periodo"],
+                "Moneda": meta["moneda"],
+                "Ramo_Col": ramo_col,
+                "Ramo_Nombre": ramo_nombre,
+                "Concepto": concepto,
+                "Valor": tok.group(),
+            })    
+
+
+
+
 ---------------------------------------------------------------------------
 TypeError                                 Traceback (most recent call last)
 Cell In[13], line 34
