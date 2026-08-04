@@ -1,3 +1,24 @@
+---------------------------------------------------------------------------
+TypeError                                 Traceback (most recent call last)
+Cell In[13], line 34
+     30     for linea in bloque[idx_participacion+1:]:
+     31         if not linea.strip() or es_separador(linea):
+     32             continue
+     33 
+---> 34         concepto = cortar(linea, *colspecs[0])
+     35         if not concepto:
+     36             continue
+     37 
+
+Cell In[5], line 29, in cortar(linea, ini, fin)
+     25         return ""
+     26     if fin is None:
+     27         return linea[ini:].strip()
+     28 
+---> 29     return linea[ini:fin].strip()
+
+TypeError: slice indices must be integers or None or have an __index__ method
+
 registros = []
 
 for n, idx in enumerate(idx_corredor):
