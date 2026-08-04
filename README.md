@@ -1,3 +1,85 @@
+registros = []
+
+for n, idx in enumerate(idx_corredor):
+    fin_bloque = idx_corredor[n+1] if n+1 < len(idx_corredor) else len(lineas)
+    bloque = lineas[idx:fin_bloque]
+    
+    m = patron_corredor.search(bloque[0])
+    meta = m.groupdict() if m else {"cod": None, "nombre": None, "periodo": None, "moneda": None}
+    
+    idx_ramos = next((i for i, l in enumerate(bloque) if "R A M O S" in l), None)
+    
+    if idx_ramos is None:
+        continue
+    
+    linea_ramos = bloque[idx_ramos]
+    nombres_ramo = [cortar(linea_ramos, ini, fin) for ini, fin in colspecs[1:-1]]
+    
+    etiqueta_total = cortar(linea_ramos, *colspecs[-1])
+    
+    idx_participacion = next((i for i, l in enumerate(bloque) if l.count('%') >= 5), None)
+    
+    if idx_participacion is None:
+        continue
+    
+    ancho = colspecs[1][1] - colspecs[1][0]
+    centros = [ini + ancho/2 for ini, fin in colspecs[1:]]
+    offset_datos = colspecs[0][1]
+    
+    
+    for linea in bloque[idx_participacion+1:]:
+        if not linea.strip() or es_separador(linea):
+            continue
+        
+        concepto = cortar(linea, *colspecs[0])
+        if not concepto:
+            continue
+        
+        resto = linea[offset_datos:]
+        for tok in re.finditer(r'\S+', resto):
+            centro_tok = offset_datos + (tok.start() + tok.end())/2
+            j = min(range(len(centros)), key=lambda k: abs(centros[k] - centro_tok))
+            
+            if j == len(centros) -1:
+                ramo_col = ramo_nombre = etiqueta_total, etiqueta_total
+            else:
+                ramo_col, ramo_nombre = j+1, nombres_ramo[j]
+                
+            registros.append({
+                "Corredor_Codigo": meta["cod"],
+                "Corredor_nombre": meta["nombre"],
+                "Periodo": meta["periodo"],
+                "Moneda": meta["moneda"],
+                "Ramo_Col": ramo_col,
+                "Ramo_Nombre": ramo_nombre,
+                "Concepto": concepto,
+                "Valor": tok.group(),
+            })
+
+---------
+---------------------------------------------------------------------------
+TypeError                                 Traceback (most recent call last)
+Cell In[12], line 34
+     30     for linea in bloque[idx_participacion+1:]:
+     31         if not linea.strip() or es_separador(linea):
+     32             continue
+     33 
+---> 34         concepto = cortar(linea, *colspecs[0])
+     35         if not concepto:
+     36             continue
+     37 
+
+Cell In[5], line 29, in cortar(linea, ini, fin)
+     25         return ""
+     26     if fin is None:
+     27         return linea[ini:].strip()
+     28 
+---> 29     return linea[ini:fin].strip()
+
+TypeError: slice indices must be integers or None or have an __index__ method
+###############                                                                                     
+                                                                                     
+                                                                                     
                                                                                      HDI SEGUROS COLOMBIA SA                                                                  Fecha.: 2026/07/22
                                                                          GERENCIA  DE  REASEGUROS  Y  RIESGOS  PATRIMONIALES                                                  Hoja No.: 001
                                                                             REASEGURO  CEDIDO  -  CONTRATOS FACULTATIVOS
