@@ -1,3 +1,101 @@
+import re
+import pandas as pd
+
+# Texto original del reporte
+raw_text = """[source: 1]                                                                                     HDI SEGUROS COLOMBIA SA                                                                  Fecha.: 2026/07/22
+... (PEGA AQUÍ O LEE TU ARCHIVO DE TEXTO) ...
+"""
+
+# Si tienes el texto guardado en un archivo 'reporte.txt', puedes leerlo así:
+# with open('reporte.txt', 'r', encoding='utf-8') as f:
+#     raw_text = f.read()
+
+# Dividir el texto por encabezados de reporte o por cada bloque de corredor
+blocks = re.split(r'(?=HDI SEGUROS COLOMBIA SA)', raw_text)
+
+records = []
+
+for block in blocks:
+    if not block.strip():
+        continue
+    
+    # Extraer Metadatos
+    corredor_match = re.search(r'Corredor:\s*(\d*)\s*(.*?)\s{2,}Periodo', block)
+    periodo_match = re.search(r'Periodo\.\.:\s*([\d-]+)', block)
+    moneda_match = re.search(r'Moneda\.\.:\s*(.+)', block)
+    hoja_match = re.search(r'Hoja No\.:\s*(\d+)', block)
+    
+    corredor_id = corredor_match.group(1).strip() if corredor_match and corredor_match.group(1) else ""
+    corredor_nombre = corredor_match.group(2).strip() if corredor_match else ""
+    periodo = periodo_match.group(1).strip() if periodo_match else ""
+    moneda = moneda_match.group(1).strip() if moneda_match else ""
+    hoja_no = hoja_match.group(1).strip() if hoja_match else ""
+
+    # Extraer la fila de RAMOS
+    ramos_match = re.search(r'R A M O S\s+(.*?)\n', block)
+    if not ramos_match:
+        continue
+    
+    # Construir lista de ramos/columnas en el bloque
+    ramos_line = ramos_match.group(1)
+    # Extraer tokens de ramos usando regex para capturar nombres de ramos
+    ramos = [r.strip() for r in re.findall(r'[A-Z0-9\.\s/]{2,}', ramos_line) if r.strip() and r.strip() != "CONTINUA..."]
+    
+    lines = block.split('\n')
+    
+    # Identificar líneas de rubros contables
+    for line in lines:
+        # Ignorar líneas decorativas o encabezados
+        if any(hdr in line for hdr in ['R A M O S', 'PARTICIPACION', '----------------', 'GERENCIA', 'REASEGURO', 'Fecha.:', 'Corredor:']):
+            continue
+            
+        # Buscar nombre del concepto al inicio de la línea
+        concept_match = re.match(r'^\s*([A-Z\s/]{3,30})', line)
+        if not concept_match:
+            continue
+            
+        concepto = concept_match.group(1).strip()
+        if not concepto or concepto in ["TOTAL", "CONTINUA..."]:
+            continue
+            
+        # Extraer todos los montos/valores numéricos de la línea
+        values = re.findall(r'(-?[\d,]+\.\d{2}-?|-?\.\d{2}-?)', line)
+        
+        if values and len(ramos) > 0:
+            # Asociar valores con sus respectivos ramos
+            for idx, val in enumerate(values):
+                col_ramo = ramos[idx] if idx < len(ramos) else "TOTAL"
+                
+                # Normalizar el número
+                val_clean = val.replace(',', '')
+                if val_clean.endswith('-'):
+                    val_clean = '-' + val_clean[:-1]
+                
+                try:
+                    num_val = float(val_clean)
+                except ValueError:
+                    num_val = val
+                
+                records.append({
+                    'Hoja': hoja_no,
+                    'Periodo': periodo,
+                    'Corredor_ID': corredor_id,
+                    'Corredor_Nombre': corredor_nombre,
+                    'Moneda': moneda,
+                    'Ramo': col_ramo,
+                    'Concepto': concepto,
+                    'Valor': num_val
+                })
+
+# Convertir a DataFrame de Pandas
+df = pd.DataFrame(records)
+
+# Exportar a Excel
+df.to_excel("Reporte_HDI_Reaseguros.xlsx", index=False)
+print("¡Archivo Excel generado exitosamente como 'Reporte_HDI_Reaseguros.xlsx'!")
+_______________
+______________
+
 import pandas as pd
 import re
 
