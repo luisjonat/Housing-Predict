@@ -1,3 +1,150 @@
+import pandas as pd
+import re
+
+ruta = ""  # Ajustar según tu ruta
+archivo_txt = ruta + "Planilla_Stos_Rva_lmic_062026_Brok.txt"
+
+with open(archivo_txt, 'r', encoding='utf-8', errors='ignore') as f:
+    lineas = f.readlines()
+
+def obtener_posiciones_columnas(linea_encabezado):
+    """
+    Identifica el nombre de cada columna y su rango de posiciones (start, end)
+    en la línea de encabezado usando expresiones regulares.
+    """
+    columnas = []
+    # Busca bloques de caracteres no espacios
+    for match in re.finditer(r'\S+(\s+\S+)*?', linea_encabezado):
+        # Para evitar capturar múltiples columnas como una sola si hay un solo espacio,
+        # regex encuentra las palabras continuas.
+        pass
+
+    # Un método más preciso basado en espacios dobles o más como delimitadores:
+    # Capturamos cada palabra y su posición de inicio
+    matches = list(re.finditer(r'\S+(?:\s\S+)*', linea_encabezado))
+    
+    for i, match in enumerate(matches):
+        col_nombre = match.group().strip()
+        inicio = match.start()
+        # El fin de la columna es el inicio de la siguiente columna, o el final de la línea
+        fin = matches[i+1].start() if i + 1 < len(matches) else len(linea_encabezado)
+        columnas.append((col_nombre, inicio, fin))
+        
+    return columnas
+
+def limpiar_texto(valor):
+    if isinstance(valor, str):
+        return re.sub(r'[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F-\x9F]', '', valor).strip()
+    return valor
+
+# Estructura para almacenar cada bloque/tabla encontrada
+tablas_procesadas = []
+
+encabezado_bloque_actual = []
+linea_nombres_col = None
+posiciones_cols = []
+registros_tabla_actual = []
+
+i = 0
+while i < len(lineas):
+    linea = lineas[i]
+    linea_strip = linea.strip()
+
+    # Detectamos la línea divisoria que precede/sigue al encabezado
+    if "--------" in linea:
+        # La línea anterior a los guiones suele ser el nombre de las columnas
+        if i > 0 and lineas[i-1].strip() and not lineas[i-1].strip().startswith("Ramo..:"):
+            linea_nombres_col = lineas[i-1]
+            # Si el encabezado del bloque acumuló la línea de nombres, la removemos del meta-encabezado
+            if encabezado_bloque_actual and encabezado_bloque_actual[-1] == linea_nombres_col:
+                encabezado_bloque_actual.pop()
+            
+            # Calculamos las posiciones dinámicas para esta tabla específica
+            posiciones_cols = obtener_posiciones_columnas(linea_nombres_col)
+            registros_tabla_actual = []
+            
+            # Saltamos la línea de guiones
+            i += 1
+            
+            # Leemos los datos de la tabla hasta encontrar una línea en blanco o fin de tabla
+            while i < len(lineas):
+                sub_linea = lineas[i]
+                sub_strip = sub_linea.strip()
+
+                # Condición de parada de la tabla actual
+                if not sub_strip or "--------" in sub_linea or sub_strip.startswith("Ramo..:"):
+                    # Si encontramos otra estructura de control, rompe el ciclo de lectura de filas
+                    break
+                
+                # Extraer valores según las posiciones calculadas dinámicamente
+                fila_dict = {}
+                for col_nombre, start, end in posiciones_cols:
+                    val = sub_linea[start:end] if len(sub_linea) >= start else ""
+                    fila_dict[col_nombre] = val.strip()
+                
+                registros_tabla_actual.append(fila_dict)
+                i += 1
+            
+            # Guardamos la tabla procesada con su respectivo meta-encabezado
+            if registros_tabla_actual:
+                df_tabla = pd.DataFrame(registros_tabla_actual)
+                df_tabla = df_tabla.map(limpiar_texto)
+                
+                tablas_procesadas.append({
+                    'encabezado_texto': "".join(encabezado_bloque_actual),
+                    'dataframe': df_tabla
+                })
+            
+            # Reiniciamos variables para el siguiente bloque
+            encabezado_bloque_actual = []
+            continue
+
+    else:
+        # Mientras no estemos en una tabla, acumulamos las líneas como encabezado del siguiente bloque
+        if linea_strip and not linea_strip.startswith("Ramo..:"):
+            encabezado_bloque_actual.append(linea)
+    
+    i += 1
+
+# ==========================================
+# ESCRITURA EN EXCEL (CONSERVA CADA TABLA Y SU ENCABEZADO)
+# ==========================================
+
+archivo_salida = ruta + "Planilla_Stos_Pagos_062026_Brok.xlsx"
+
+with pd.ExcelWriter(archivo_salida, engine="openpyxl") as writer:
+    current_row = 0
+    
+    for idx, item in enumerate(tablas_procesadas):
+        texto_hdr = item['encabezado_texto']
+        df = item['dataframe']
+        
+        # 1. Escribir el encabezado del bloque si existe
+        if texto_hdr.strip():
+            lineas_hdr = texto_hdr.splitlines()
+            df_hdr = pd.DataFrame({'ENCABEZADO': lineas_hdr})
+            df_hdr.to_excel(
+                writer,
+                sheet_name="Reporte",
+                startrow=current_row,
+                index=False,
+                header=False
+            )
+            current_row += len(lineas_hdr) + 1
+        
+        # 2. Escribir la DataFrame con sus propias columnas dinámicas
+        df.to_excel(
+            writer,
+            sheet_name="Reporte",
+            startrow=current_row,
+            index=False
+        )
+        
+        # Ajustar la fila de inicio para la siguiente tabla (deja 3 filas de espacio)
+        current_row += len(df) + 3
+
+
+----------------------------------------
 with open(ruta + "Cta_Fac_Broker_2Q2026 1", encoding='utf-8', errors='replace') as f:
     lineas = [l.rstrip('\r\n') for l in f.readlines()]
 
