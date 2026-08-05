@@ -1,3 +1,127 @@
+import os
+import re
+import pandas as pd
+
+# 1. Definir rutas y cargar líneas del archivo
+ruta = r"C:\\Users\\luis\\Documents\\Prueba\\"
+archivo_txt = "HDI SEGUROS COLOMBIA SA.txt"
+
+with open(ruta + archivo_txt, "r", encoding="utf-8") as f1:
+    lineas_1 = f1.readlines()
+
+# 2. Identificar inicio de datos o encabezado general
+# Tomamos los metadatos de las primeras líneas como encabezado global
+fila_inicio = 0
+for i, linea in enumerate(lineas_1):
+    if "----------------" in linea:
+        fila_inicio = i + 1
+        break
+
+encabezado = lineas_1[:fila_inicio]
+
+# 3. Muestra de regla de posiciones (Ruler) para inspección manual (opcional)
+for i in range(min(7, len(lineas_1)), min(17, len(lineas_1))):
+    linea_1 = lineas_1[i]
+    print("".join([str(j // 10) for j in range(len(linea_1))]))
+    print("".join([str(j % 10) for j in range(len(linea_1))]))
+    print(linea_1)
+
+# 4. Extracción de registros por posiciones fijas (Fixed-width Slicing)
+registros_1 = []
+
+# Variables para mantener el contexto de página/bloque actual
+corredor_actual = ""
+periodo_actual = ""
+moneda_actual = ""
+hoja_actual = ""
+
+for fila in lineas_1:
+    # Ignorar líneas completamente vacías
+    if not fila.strip():
+        continue
+
+    # Capturar variables del encabezado cuando cambian en el flujo
+    if "Corredor:" in fila:
+        corredor_actual = fila[12:55].strip()
+        if "Periodo..:" in fila:
+            periodo_actual = fila[68:80].strip()
+        continue
+
+    if "Moneda..:" in fila:
+        moneda_actual = fila[12:40].strip()
+        if "Hoja No.:" in fila:
+            hoja_actual = fila[68:80].strip()
+        continue
+
+    # Ignorar líneas divisorias o de encabezados repetitivos
+    if any(
+        kw in fila
+        for kw in [
+            "HDI SEGUROS",
+            "REASEGURO CEDIDO",
+            "R A M O S",
+            "PARTICIPACION",
+            "-------------",
+            "Fecha.:",
+            "GERENCIA",
+        ]
+    ):
+        continue
+
+    # Detectar si la línea contiene un concepto y sus valores según ancho fijo
+    # En este reporte los conceptos inician desde el carácter 0 al 28
+    concepto = fila[0:28].strip()
+
+    # Si es una línea de datos válida (no una continuación o totalizador vacío)
+    if concepto and concepto not in ["TOTAL", "CONTINUA..."]:
+        # Mapeo de columnas fijas para los rubros
+        registros_1.append(
+            {
+                "HOJA": hoja_actual,
+                "PERIODO": periodo_actual,
+                "CORREDOR": corredor_actual,
+                "MONEDA": moneda_actual,
+                "CONCEPTO": concepto,
+                "RAMO_1": fila[28:48].strip(),
+                "RAMO_2": fila[48:68].strip(),
+                "RAMO_3": fila[68:88].strip(),
+                "RAMO_4": fila[88:108].strip(),
+                "TOTAL": fila[108:130].strip(),
+            }
+        )
+
+# 5. Crear DataFrame
+df_2 = pd.DataFrame(registros_1)
+
+
+# 6. Función de limpieza de caracteres invisibles
+def limpiar_texto(valor):
+    if isinstance(valor, str):
+        return re.sub(r"[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F-\x9F]", "", valor)
+    return valor
+
+
+df_2 = df_2.map(limpiar_texto)
+
+# 7. Exportar a Excel con Encabezado original + Tabla de datos
+archivo_excel = "Reporte_HDI_Estructurado.xlsx"
+
+with pd.ExcelWriter(ruta + archivo_excel, engine="openpyxl") as writer:
+    # Escribir el texto del encabezado en la parte superior
+    pd.DataFrame({"ENCABEZADO": [linea.rstrip() for linea in encabezado]}).to_excel(
+        writer, sheet_name="Reporte", index=False, header=False
+    )
+
+    # Escribir la tabla estructurada debajo del encabezado
+    df_2.to_excel(
+        writer,
+        sheet_name="Reporte",
+        startrow=len(encabezado) + 2,
+        index=False,
+    )
+
+print(f"¡Proceso finalizado con éxito! Guardado en {ruta + archivo_excel}")
+-------------------------------------------
 import re
 import pandas as pd
 
